@@ -172,7 +172,7 @@ class OutlookAccount(object):
         """
         return self._get_messages_from_folder_name('Inbox')
 
-    def new_email(self, body='', subject='', to=list):
+    def new_email(self, body='', subject='', to=list, sender=None, cc=None, bcc=None):
         """Creates a :class:`Message <pyOutlook.core.message.Message>` object.
 
         Keyword Args:
@@ -184,7 +184,7 @@ class OutlookAccount(object):
             :class:`Message <pyOutlook.core.message.Message>`
 
         """
-        return Message(self.access_token, body, subject, to)
+        return Message(self.access_token, body, subject, to, sender=sender, cc=cc, bcc=bcc)
 
     def send_email(self, body=None, subject=None, to=list, cc=None, bcc=None,
                    send_as=None, attachments=None):
@@ -270,17 +270,18 @@ class OutlookAccount(object):
         return_folder = r.json()
         return Folder._json_to_folder(self, return_folder)
 
-    def _get_messages_from_folder_name(self, folder_name):
-        """ Retrieves all messages from a folder, specified by its name. This only works with "Well Known" folders,
-        such as 'Inbox' or 'Drafts'.
+    def _get_messages_from_folder_name(self, folder_name, parameters=None):
+        """ Retrieves all messages from a folder, specified by its name, with parameters (select, filter, orderby ...). 
+        This only works with "Well Known" folders, such as 'Inbox' or 'Drafts'.
 
         Args:
             folder_name (str): The name of the folder to retrieve
+            parameters (dict): The parameters to apply
 
         Returns: List[:class:`Message <pyOutlook.core.message.Message>` ]
 
         """
         r = requests.get('https://outlook.office.com/api/v2.0/me/MailFolders/' + folder_name + '/messages',
-                         headers=self._headers)
+                         headers=self._headers, params = parameters)
         check_response(r)
         return Message._json_to_messages(self, r.json())
